@@ -1,0 +1,37 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "This is awesomity task force employees management system",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon --require babel-core/register --require babel-polyfill ./index.js",
+    "dev": "nodemon --require babel-core/register --require babel-polyfill ./index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nahimanajz/Employees-Management.git"
+  },
+  "author": "nahimana",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nahimanajz/Employees-Management/issues"
+  },
+  "homepage": "https://github.com/nahimanajz/Employees-Management#readme",
+  "dependencies": {
+    "babel-core": "^6.26.3",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "joi": "^14.3.1",
+    "jsonwebtoken": "^8.5.1",
+    "nodemailer": "^6.4.2",
+    "pg": "^7.17.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0"
+  }
+}
