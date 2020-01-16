@@ -2,12 +2,12 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import managers  from '../assets/managers';
 import validators from '../helpers/Validators';
+import notify from "../helpers/SendEmail";
 import mm from '../models/ManagerModel';
-import Database from "../database/Database";
+import db from "../database/Database";
 
-const db = new Database();
-
-class Manager {
+class Manager {   
+                
     signUp(req, res){      
        const  { error } = validators.managerInfo(req.body);
        if(error) {
@@ -34,9 +34,9 @@ class Manager {
             message: 'phone is already exist please try another'
         });
     }  */   
-    const token =jwt.sign({data:req.body},process.env.PRIVATEKEY);
+    const token =mm.generateToken(req.body);
     bcrypt.hash(req.body.password, 8, (err, hash) => {
-        console.log(hash);    
+          
 
         const newManagerId = managers.length + 1;
         const position = "manager";
@@ -57,14 +57,71 @@ class Manager {
        //saving in database
        const text = 'INSERT INTO managers(nid, names, position, email, status, password,phone,dob) VALUES($1, $2,$3,$4, $5, $6, $7, $8) RETURNING *'
        const values = [req.body.nid, req.body.names, position,  req.body.email, req.body.status, hash, req.body.phone, req.body.dob];
-       db.executeQuery(text, values);
-       
- 
-       return res.send({
-           success: 200,
-           manager: newManagerInfo
-       });    
+       if(db.executeQuery(text, values)){
+           const message = `We are welcoming You  to join Employees Management`;
+           notify.sendNotification(req.body, message);
+           return res.send({
+            success: 200,
+            manager: newManagerInfo
+        });  
+       }
+         
     });  
-    }      
+    
+    }    
+     async signin(req, res){
+       const manager = db.executeQuery('SELECT * FROM managers WHERE email=$1', [req.body.email]);
+        // console.log(manager[0]);
+        
+       return res.status(400).json({
+           status:400,
+           manager:manager[0].email
+       });
+       const { error } = validators.signinValidation(req.body);
+       if(error) {
+           return res.status(400).json({
+              status: 400,
+              error: error.details[0].message.split('"').join(''),
+           });
+       }
+       try {
+           const isUserExist = await mm.isEmailExist(req.body.email);
+           if(!isUserExist){
+               return res.status(401).json({
+                   status:404,
+                   error: 'User not found'
+               });
+           }
+           const isPasswordValid = await bcrypt.compare(req.body.password, isUserExist.password);
+            if(!isPasswordValid) {
+                return res.status(401).json({
+                    status:401,
+                    error: 'invalid credentials'
+                });
+            }
+            const managerToken = mm.generateToken(isUserExist);
+            return res.status(200).header('x-auth',managerToken).json({
+                status: 200,
+                message: 'Manager is successfully logged in',
+                data: {
+                    managerid: isUserExist.managerid,
+                    names: isUserExist.names,
+                    nid: isUserExist.nid,
+                    phone: isUserExist.phone,
+                    dob: isUserExist.dob,
+                    status: isUserExist.status,
+                    position: isUserExist.position,
+                    email: isUserExist.email,
+                    token: managerToken
+                      },
+            });
+       } catch(error) {
+           return res.status(500).json({
+               error: 500,
+               message: error
+           })
+       }
+        
+    } 
 }
 export default new Manager();
