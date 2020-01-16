@@ -1,32 +1,38 @@
-import emailer from "nodemailer";
+import nodemailer from "nodemailer";
+import env from "dotenv";
+env.config();
 
 class SendEmail{
  sendNotification(receiver, message) {
-     this.sendEmail(receiver, message);
-         
+     this.sendEmailMessage(receiver, message);         
  }
  async sendEmailMessage(receiver, message) {
      try{
-         this.sender = nodemailer.createTransport({
+         const testAccount = nodemailer.createTransport({
           host: 'smtp.gmail.com',
           port: 587,
-          secure:false,
+          secure: false,
           auth: {
-              user:process.env.MAILERUSER,
-              pass:process.env.MAILERPASS,
+              user: process.env.MAILERUSER,
+              pass: process.env.MAILERPASS,
           },   
          });
          
-         this.mailOptions = {
+         let info = {
              from: `The Employee Management System ${process.env.MAILERUSER}`,
              to: receiver.email,
              subject: 'Employee Management ltd says',
-             text: `hello ${receiver.username} ${message}`
+             text: `Dear ${receiver.names} ${message}`,
+             html:`<br> Thank you`
+             
          };
-         return await this.sender.sendMail(this.mailOptions);
+         console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+         return await  testAccount.sendMail(info);
 
      } catch(err){
-         return err;
+         return console.log(err);
      }
  }
 }
+
+export default new SendEmail();

@@ -30,5 +30,12 @@ class Validation {
         }
         return joi.validate(data, managerSchema);
     }
+    signinValidation(data){
+        const schema = {
+            email: joi.string().email().required(),
+            password: joi.required()
+        }
+        return joi.validate(data, schema);
+    }
 }
 export default new Validation();
