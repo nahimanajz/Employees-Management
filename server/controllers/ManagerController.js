@@ -5,8 +5,9 @@ import validators from '../helpers/Validators';
 import notify from "../helpers/SendEmail";
 import mm from '../models/ManagerModel';
 import db from "../database/Database";
+import dHelper from "../database/DbHelper";
 
-class Manager {   
+class Manager {  
                 
     signUp(req, res){      
        const  { error } = validators.managerInfo(req.body);
@@ -70,13 +71,20 @@ class Manager {
     
     }    
      async signin(req, res){
-       const manager = db.executeQuery('SELECT * FROM managers WHERE email=$1', [req.body.email]);
+      /* const manager = db.executeQuery('SELECT * FROM managers WHERE email=$1', [req.body.email]);
         // console.log(manager[0]);
         
        return res.status(400).json({
            status:400,
            manager:manager[0].email
-       });
+       }); 
+       
+       const found = db.findOne(req.body.email);
+        if(found === 0){
+            return res.status(404).json({ message: 'not found'});
+        } else {
+            return res.status(200).json({ messager: found });
+        }
        const { error } = validators.signinValidation(req.body);
        if(error) {
            return res.status(400).json({
@@ -121,7 +129,41 @@ class Manager {
                message: error
            })
        }
-        
+        */
     } 
+    async userLogin(req, res){
+        try {
+            const {rows} = await dHelper.query('SELECT * FROM managers WHERE email=$1', [req.body.email]);
+         if(rows.length === 0){
+            return res.send({
+                success: 404,
+                manager: 'user not found'
+            });  
+         } else {
+          const passCheck = await bcrypt.compare(req.body.password, rows[0].password);
+          if(!passCheck) {
+            return res.status(401).json({
+                status:401,
+                error: 'Invalid Credentials'
+            });
+        } 
+         const user = {
+             email: rows[0].email,
+             managerid: rows[0].managerid,
+             names:rows[0].names,
+             nid: rows[0].nid
+         }
+         const token = mm.generateToken(user);
+            return res.send({
+                success: 200,
+                manager: rows[0],
+                token:token
+            });  
+         }            
+        } catch (error) {
+             console.log(error);
+        }
+        
+    }
 }
 export default new Manager();
