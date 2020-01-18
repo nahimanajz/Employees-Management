@@ -9,8 +9,8 @@ class Validation {
             names: joi.string().required(),
             position: joi.string().required(),
             status: joi.optional(),
-            dob: joi.date().timestamp(), 
-            age: joi.number().required()          
+            dob: joi.number().max(2002), 
+                     
            
         }
         return joi.validate(data, employeeSchema);
@@ -24,7 +24,7 @@ class Validation {
             names: joi.string().required(),
             position: joi.string().optional(),
             status: joi.optional(),
-            dob: joi.date().timestamp(),             
+            dob: joi.number().max(2002),             
             password:joi.string().required()           
            
         }

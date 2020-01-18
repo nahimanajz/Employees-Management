@@ -6,9 +6,9 @@ import auth from "../middlewares/Authentication";
 
 
 const routes = express.Router();
-routes.post('/employees', employee.addEmployee);
+routes.post('/employees', auth.managerAuthorizer, employee.addEmployee);
 routes.post('/manager/signup', manager.signUp);
-routes.post('/manager/signin', manager.signin);
+routes.post('/manager/signin', manager.userLogin);
 routes.get('/managers/all', db.getAll);
 
 routes.get('/manager/', auth.managerAuthorizer, (req,res) => {
