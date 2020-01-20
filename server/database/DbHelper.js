@@ -19,6 +19,7 @@ class DbHelper {
 endConnection(){
     this.pool.end();
 }
+
 }
 export default new DbHelper();
 
