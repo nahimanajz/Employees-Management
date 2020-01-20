@@ -1,21 +1,13 @@
-import employees from "../assets/employee";
+import db from "../database/DbHelper";
 
 class employeeModel {
-     constructor(){
-         this.employee = employees;
-     }
-    isEmailExist(email){
-    return this.employee.find((data) => data.email === email);
-         
+    async findOne(id){
+        try {
+       const manager = await db.query("SELECT * FROM employees WHERE employeeid=$1", [id]);    
+       return manager.rows;
+    } catch(error) {
+       console.log(error);   
+    }  
     }
-    isIdNumberExist(nid){
-    return this.employee.find((data) => data.nid === nid);
-    }
-    isPhoneExist(phone){
-     return this.employee.find((data) => data.phone === phone)
-    }
-    
-    
 }
-
 export default new employeeModel();
