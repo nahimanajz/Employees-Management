@@ -35,26 +35,8 @@ class Database {
            } 
             
     } 
-    async findOne(req, res){
-        try {
-       const manager = await pool.query("SELECT * FROM managers WHERE managerid=$1", [req.params.id]);
-       if(manager.rowCount === 0){
-           return res.status(404).json({ 
-               status:404,
-               message:'NOT FOUND'
-             });
-       } else {
-           
-           return res.status(404).json({
-            status:200,
-             message: manager.rows
-            });
-            
-       }
-    } catch(error) {
-       res.send({error});   
-    }
-    }
+     
+    
     
 
 }
