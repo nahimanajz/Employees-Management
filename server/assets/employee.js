@@ -7,11 +7,8 @@ const employees = [
     "email": "jazzosoft@outlook.com" ,
     "Dob": "23/02/2019" ,
     "status": "active" ,
-    "position": "developer",
-    "age":18
-   
-
-},
+    "position": "developer",  
+   },
 {   
     "employeeId": 2 ,
     "names":"olly" ,
