@@ -4,12 +4,12 @@ import managers  from '../assets/managers';
 import validators from '../helpers/Validators';
 import notify from "../helpers/SendEmail";
 import mm from '../models/ManagerModel';
-import db from "../database/Database";
-import dHelper from "../database/DbHelper";
+import dHelper from "../database/dbHelper";
+
 
 class Manager {  
                 
-    signUp(req, res){      
+    async signUp(req, res){      
        const  { error } = validators.managerInfo(req.body);
        if(error) {
            return res.status(400).json({
@@ -17,130 +17,69 @@ class Manager {
                error: error.details[0].message
            });
         }
-     /**  if(mm.isEmailExist(req.body.email)){
-           return res.status(403).json({
-               error: 403,
-               message: 'Email is already exist please try another'
-           });
-       }
-       if(mm.isIdNumberExist(req.body.nid)){
+       
+    
+    const token =mm.generateToken(req.body);
+    const hash = await bcrypt.hash(req.body.password, 8);  
+  
+  try {
+    const isEmailExist = await dHelper.query('SELECT * FROM managers WHERE email=$1', [req.body.email]);
+    if(isEmailExist.rowCount > 0){
         return res.status(403).json({
-            error: 403,
-            message: 'national id  is already exist please try another'
+         message: 'Email is already exist please try another'
         });
     }
-    if(mm.isPhoneExist(req.body.phone)){
+    const isNidExist = await dHelper.query('SELECT * FROM managers WHERE nid=$1', [req.body.nid]);
+    if(isNidExist.rowCount > 0){
         return res.status(403).json({
-            error: 403,
-            message: 'phone is already exist please try another'
+         message: 'Nid is already exist please try another'
         });
-    }  */   
-    const token =mm.generateToken(req.body);
-    bcrypt.hash(req.body.password, 8, (err, hash) => {
-          
-
-        const newManagerId = managers.length + 1;
-        const position = "manager";
-        const newManagerInfo = {
-        employeeId: newManagerId,
-        names: req.body.names,
-        email: req.body.email,
-        nid: req.body.nid,
-        phone: req.body.phone,
-        Dob: req.body.Dob,
-        status:req.body.status,
-        password: hash,    
-        position: position,
-        token: token
-       } 
-       managers.push(newManagerInfo); 
-
+    }
+    const isPhoneExist = await dHelper.query('SELECT * FROM managers WHERE phone=$1', [req.body.phone]);
+    if(isPhoneExist.rowCount > 0){
+        return res.status(403).json({
+         message: 'phone is already exist please try another'
+        });
+    }
        //saving in database
-       const text = 'INSERT INTO managers(nid, names, position, email, status, password,phone,dob) VALUES($1, $2,$3,$4, $5, $6, $7, $8) RETURNING *'
-       const values = [req.body.nid, req.body.names, position,  req.body.email, req.body.status, hash, req.body.phone, req.body.dob];
-       if(db.executeQuery(text, values)){
-           const message = `We are welcoming You  to join Employees Management`;
-           notify.sendNotification(req.body, message);
-           return res.send({
-            success: 200,
-            manager: newManagerInfo
-        });  
-       }
-         
-    });  
-    
-    }    
-     async signin(req, res){
-      /* const manager = db.executeQuery('SELECT * FROM managers WHERE email=$1', [req.body.email]);
-        // console.log(manager[0]);
+       const text = 'INSERT INTO managers(nid, names, position, email, status, password,phone,dob) VALUES($1, $2,$3,$4, $5, $6, $7, $8) RETURNING*'
+       const values = [req.body.nid, req.body.names, 'Manager',  req.body.email, req.body.status, hash, req.body.phone, req.body.dob];
         
-       return res.status(400).json({
-           status:400,
-           manager:manager[0].email
-       }); 
-       
-       const found = db.findOne(req.body.email);
-        if(found === 0){
-            return res.status(404).json({ message: 'not found'});
-        } else {
-            return res.status(200).json({ messager: found });
-        }
-       const { error } = validators.signinValidation(req.body);
-       if(error) {
-           return res.status(400).json({
-              status: 400,
-              error: error.details[0].message.split('"').join(''),
-           });
-       }
-       try {
-           const isUserExist = await mm.isEmailExist(req.body.email);
-           if(!isUserExist){
-               return res.status(401).json({
-                   status:404,
-                   error: 'User not found'
-               });
-           }
-           const isPasswordValid = await bcrypt.compare(req.body.password, isUserExist.password);
-            if(!isPasswordValid) {
-                return res.status(401).json({
-                    status:401,
-                    error: 'invalid credentials'
-                });
-            }
-            const managerToken = mm.generateToken(isUserExist);
-            return res.status(200).header('x-auth',managerToken).json({
-                status: 200,
-                message: 'Manager is successfully logged in',
-                data: {
-                    managerid: isUserExist.managerid,
-                    names: isUserExist.names,
-                    nid: isUserExist.nid,
-                    phone: isUserExist.phone,
-                    dob: isUserExist.dob,
-                    status: isUserExist.status,
-                    position: isUserExist.position,
-                    email: isUserExist.email,
-                    token: managerToken
-                      },
-            });
-       } catch(error) {
-           return res.status(500).json({
-               error: 500,
-               message: error
-           })
-       }
-        */
-    } 
+       if(await dHelper.query(text, values)){
+           const message = `We are welcoming You  to join Employees Management as Manager`;
+           notify.sendNotification(req.body, message);
+           
+           return res.send({
+               success: 201,
+               data: {
+                   name: req.body.names,
+                   email: req.body.email,
+                   position: req.body.position,
+                   status: req.body.status,
+                   dob:    req.body.dob,
+                   nid: req.body.nid
+               }                      
+        });  
+       }      
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({        
+        status:500,
+        error: error
+    });
+  }     
+    }    
+     
     async userLogin(req, res){
         try {
             const {rows} = await dHelper.query('SELECT * FROM managers WHERE email=$1', [req.body.email]);
          if(rows.length === 0){
-            return res.send({
-                success: 404,
-                manager: 'user not found'
+            return res.status(401).json({
+                status:401,
+                error: 'Invalid Credentials'
             });  
          } else {
-          const passCheck = await bcrypt.compare(req.body.password, rows[0].password);
+          const passCheck = await bcrypt.compare(req.body.password, req.body.password);
           if(!passCheck) {
             return res.status(401).json({
                 status:401,
@@ -148,15 +87,15 @@ class Manager {
             });
         } 
          const user = {
-             email: rows[0].email,
-             managerid: rows[0].managerid,
-             names:rows[0].names,
-             nid: rows[0].nid
+             email: req.body.email,
+             managerid: req.body.managerid,
+             names:req.body.names,
+             nid: req.body.nid
          }
          const token = mm.generateToken(user);
             return res.send({
                 success: 200,
-                manager: rows[0],
+                manager: req.body,
                 token:token
             });  
          }            

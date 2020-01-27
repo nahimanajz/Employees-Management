@@ -8,7 +8,8 @@ const app = express();
 
 const port = process.env.PORT || 9000;
 app.use(express.json());
-app.use(bodyParser.urlencoded({ extended:true }));
+app.use(bodyParser.json({limit: '500mb'}))
+
 app.use('/', routes);
 
 app.listen(port, () => console.log(`App is started ${port}`));

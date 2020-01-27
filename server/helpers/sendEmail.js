@@ -22,8 +22,8 @@ class SendEmail{
              from: `The Employee Management System ${process.env.MAILERUSER}`,
              to: receiver.email,
              subject: 'Employee Management ltd says',
-             text: `Dear ${receiver.names} ${message}`,
-             html:`<br> Thank you`
+             text: `Dear ${receiver.names} ${message} `,
+             
              
          };
          console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
